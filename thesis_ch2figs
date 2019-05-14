@@ -1,0 +1,1179 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jan 15 12:58:11 2019
+
+@author: bakerh
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def colourscale(plotdata):
+    """
+    Takes data being plotted and normalises the colourscale between largest
+    data value and it's negative multiple
+
+    Parameters
+    ----------
+    plotdata: array
+        data being plotted
+
+    Returns
+    -------
+    caxismax: int
+        max magnitude data value
+    caxismin: int
+        negative of max mag data value
+    ctrs: array
+        gradated colour scale contour array
+    """
+    M = np.nanmax(plotdata)
+    m = np.nanmin(plotdata)
+    if M >= abs(m):
+        ctrs1 = np.arange(-M, 0, .1*M)
+        ctrs2 = np.arange(0.1*M, 1.09*M, .1*M)
+        ctrs = np.concatenate((ctrs1, ctrs2))
+        caxismin = -M
+        caxismax = M
+    else:
+        m = -m
+        ctrs1 = np.arange(-m, 0, .1*m)
+        ctrs2 = np.arange(0.1*m, 1.09*m, .1*m)
+        ctrs = np.concatenate((ctrs1, ctrs2))
+        caxismin = -m
+        caxismax = m
+    # function will not work if there exist no positive max or negative min
+    return caxismin, caxismax, ctrs
+
+
+def fig1():
+    def lapserate(t, z, sigma, lat):
+        """
+        Produces plot of lapse rate of T data
+
+        Parameters
+        ----------
+        t: array
+            temperature data field
+        z: array
+            geopotential height of field
+        sigma: array
+            sigma levels of field
+        lat: array
+            lat of field
+        """
+        import numpy as np
+        dT = np.zeros((np.ma.size(sigma), np.ma.size(lat)))
+        dz = np.zeros((np.ma.size(sigma), np.ma.size(lat)))
+        for i in range(np.ma.size(sigma, axis=0)-1):
+            dT[i, :] = t[i+1, :] - t[i, :]
+        for i in range(np.ma.size(sigma, axis=0)-1):
+            dz[i, :] = z[i+1, :] - z[i, :]
+        lapse = -1000 * dT[0:-1] / dz[0:-1]
+        # zonalplot(lapse, sigma[0:-1], lat, 'Lapse rate')
+        return lapse
+
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    #from adjustText import adjust_text
+    meshlat000, meshsigma = np.meshgrid(lat, sigma)
+    meshlat, meshlevel = np.meshgrid(lat000,level)
+    lapse = lapserate(airNA, hgtNA, level, lat000)
+    lapsegcm = lapserate(temp, z000[0, :], sigma, lat)
+    lapse[:4, :] = 99
+    lapsegcm[22:, :] = 99
+    fig = plt.figure()
+    mycmap2 = plt.cm.YlOrRd(np.arange(256))
+    mycmap1 = plt.cm.Blues_r(np.arange(256))
+    my_cmap = np.concatenate((mycmap1, mycmap2), axis=0)
+    my_cmap[242:270, :] = 1
+    newcmap = mpl.colors.LinearSegmentedColormap.from_list("newjet", my_cmap)
+    caxismin, caxismax, ctrs = colourscaleint1(50)
+    plt.subplot(1, 2, 1)
+    plot = plt.contourf(meshlat, meshlevel, uNA, ctrs, extend='both',
+                        cmap=newcmap, vmin=caxismin, vmax=caxismax)
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
+    plt.contour(meshlat[1:, :], meshlevel[1:, :], lapse, [2], linewidths=2, colors='darkblue')
+    plt.axvline(0, color='dimgrey', linestyle='dashed')
+    plt.gca().invert_yaxis()
+    plt.yscale('linear')
+    plt.xlim([-90, 90])
+    plt.xticks(np.arange(-75, 90, 15))
+    plt.title('Reanalysis', y=1.02, fontsize=24)
+    plt.subplot(1, 2, 2)
+    plot = plt.contourf(meshlat000, meshsigma, u[0], ctrs, extend='both',
+                        cmap=newcmap, vmin=caxismin, vmax=caxismax)
+    CS = plt.contour(lat, sigma, heat[124, :],
+                     [0.5, 1.0, 1.5, 1.999], colors='k', linewidths=3)
+    plt.clabel(CS, inline=True, inline_spacing=-5, fontsize=11,
+               fmt='%.1f', colors='k')
+    for i in range(37):
+        plt.axhline(y=sigma[i], xmin=0.025, xmax=0.075, color='k', lw=2)
+    plt.xticks(size=16)
+    plt.contour(meshlat000[1:, :], meshsigma[1:, :], lapsegcm, [2], linewidths=2, colors='darkblue')
+    
+    sigmax = np.argmax(heat[62, :, :], axis=0)[0]
+    latmax = np.argmax(heat[62, :, :], axis=1)[0]
+    plt.scatter(lat[latmax], sigma[sigmax], marker='o', 
+                    color='deeppink', linewidth=2, s=50)
+    sigmax = np.argmax(heat[160, :, :], axis=0)[0]
+    latmax = np.argmax(heat[160, :, :], axis=1)[0]
+    plt.scatter(lat[latmax], sigma[sigmax], marker='o', 
+                    color='deeppink', linewidth=2, s=50)
+    sigmax = np.argmax(heat[175, :, :], axis=0)[0]
+    latmax = np.argmax(heat[175, :, :], axis=1)[0]
+    plt.scatter(lat[latmax], sigma[sigmax], marker='o', 
+                    color='deeppink', linewidth=2, s=50)
+    sigmax = np.argmax(heat[215, :, :], axis=0)[0]
+    latmax = np.argmax(heat[215, :, :], axis=1)[0]
+    plt.scatter(lat[latmax], sigma[sigmax], marker='o', 
+                    color='deeppink', linewidth=2, s=50)
+    labels1 = ['1', '2', '3', '4']
+    texts = []
+    for x, y, s in zip([54.4, 32.1, -65.6, -32.1],
+                       [0.9,0.6, 0.5, 0.4],
+                       labels1):
+        texts.append(plt.text(x, y, s, bbox={'pad': 0, 'alpha': 0}, size=24))
+    #adjust_text(texts, expand_points=(0, 0),
+      #          force_points=0.01, arrowprops=dict(arrowstyle="->", color='k', lw=0),
+      #          bbox={'pad': 5, 'alpha': 0}, size=10)
+    plt.gca().invert_yaxis()
+    plt.yscale('linear')
+    plt.xlim([-90, 90])
+    plt.ylim([1, .01])
+    plt.xticks(np.arange(-75, 90, 15))
+    plt.tick_params(axis='y', labelleft='off')
+    plt.title('Model', y=1.02, fontsize=24)
+    cbar_ax = fig.add_axes([0.325, 0.1, 0.38, 0.015])
+    b = fig.colorbar(plot, cax=cbar_ax, spacing='proportional', extend='max',
+                     orientation='horizontal')
+    b.set_label(label='Zonal wind (ms$^{-1}$)', size=20,
+                fontsize=20)
+    plt.subplots_adjust(hspace=0.05, wspace=.05)
+    cl = plt.getp(cbar_ax, 'xmajorticklabels')
+    plt.setp(cl, fontsize=16)
+    plt.subplots_adjust(hspace=0.15, wspace=0.05, top=.94, bottom=0.2,
+                        left=0.04, right=0.99)
+    plt.show()
+    plt.figure()
+    #plt.title('Surface temperature', y=1.02, fontsize=30,)
+    plt.plot(latgauss, surfNA-273.15, color='red', linewidth=2)
+    plt.plot(lat, temp[-1, :]-273.15, color='blue', linewidth=2)
+    plt.axvline(0, color='dimgrey', linestyle='dashed')
+    plt.xlabel('Latitude (deg)',  fontsize=20)
+    plt.ylabel('Temperature ($^\circ$C)', fontsize=20)
+    plt.yticks(size=16)
+    plt.xticks(size=16)
+    plt.xlim([-90, 90])
+    plt.xticks(np.arange(-75, 90, 15))
+    plt.ylim([-35, 30])
+    plt.subplots_adjust(hspace=0.15, wspace=0.05, top=.99, bottom=0.07,
+                        left=0.06, right=0.99)
+
+
+def fig3(data, p, sigma, lat, control, csigma, clat):
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    fig, axs = plt.subplots(2, 2, sharex='col', sharey='row', facecolor='w',
+                            edgecolor='k', linewidth=2)
+    #plt.suptitle("Jet sensitivity", size=36,    y=.95)
+    meshlat, meshsigma = np.meshgrid(lat, sigma)
+    cmeshlat, cmeshsigma = np.meshgrid(clat, csigma)
+    mycmap2 = plt.cm.YlOrRd(np.arange(256))
+    mycmap1 = plt.cm.Blues_r(np.arange(256))
+    my_cmap = np.concatenate((mycmap1, mycmap2), axis=0)
+    my_cmap[242:270, :] = 1
+    newcmap = mpl.colors.LinearSegmentedColormap.from_list("newjet", my_cmap)
+    caxismin, caxismax, ctrs = colourscaleint(5)
+    caxismin1, caxismax1, ctr1 = colourscaleint(10.0)
+    cmi, cma, cctrs = colourscaleint(50)
+
+    plot = axs[0, 0].contourf(meshlat, meshsigma, data[0, 1, :], ctr1,
+                              extend='both',
+                              cmap=newcmap, vmin=caxismin1, vmax=caxismax1)
+    plot1 = axs[0, 0].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[0, 0].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot = axs[0, 1].contourf(meshlat, meshsigma, data[0, 0, :], ctrs,
+                              extend='both',
+                              cmap=newcmap, vmin=caxismin, vmax=caxismax)
+    plot1 = axs[0, 1].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[0, 1].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot = axs[1, 0].contourf(meshlat, meshsigma, data[1, 1, :], ctr1,
+                              extend='both', cmap=newcmap, vmin=caxismin1,
+                              vmax=caxismax1)
+    plot1 = axs[1, 0].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[1, 0].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot2 = axs[1, 1].contourf(meshlat, meshsigma, data[1, 0, :], ctrs,
+                               extend='both', cmap=newcmap, vmin=caxismin,
+                               vmax=caxismax)
+    plot1 = axs[1, 1].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[1, 1].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    for i in range(2):
+        for j in range(2):
+            axs[i, j].invert_yaxis()
+            axs[i, j].set_xlim([lat[0], lat[-1]])
+            axs[i, j].set_ylim(1, 0)
+            axs[i, j].set_xticks(np.arange(-75, 90, 15))
+            axs[i, j].set_yticks([0.0,.2,.4,.6,.8,1])
+            axs[i, j].set_xticklabels(axs[i, j].get_xticks(),
+                                      fontsize=16)
+            axs[i, j].set_yticklabels(axs[i, j].get_yticks(),
+                                      fontsize=16)
+            meshsigma2 = np.copy(meshsigma)
+            meshsigma1 = np.copy(meshsigma)
+            # axs[i, j].contour(meshlat, meshsigma, p[i, 1-j, :], [0.005],
+            # linewidths=2)
+            for a in range(9):
+                for b in range(34):
+                    if p[i, 1-j, a, b] <= 0.005:
+                        meshsigma2[a, b] = np.nan
+            axs[i, j].scatter(meshlat, meshsigma2, marker='o', color='gray',
+                              s=0.5)
+            for a in range(9):
+                for b in range(34):
+                    if p[i, 1-j, a, b] > 0.005:
+                        meshsigma1[a, b] = np.nan
+            axs[i, j].scatter(meshlat, meshsigma1, marker='o', color='black',
+                              s=5)
+    plt.subplots_adjust(hspace=0.079, wspace=.05)
+    cbar_ax = fig.add_axes([0.125, 0.07, 0.38, 0.015])
+    b = fig.colorbar(plot, cax=cbar_ax, spacing='proportional', extend='max',
+                     orientation='horizontal',
+                     ticks=np.linspace(caxismin1, caxismax1, 9))
+    b.set_label(label='Poleward jet latitude shift (deg)', size=20)
+    cl = plt.getp(cbar_ax, 'xmajorticklabels')
+    plt.setp(cl, fontsize=16)
+    cbar_ax1 = fig.add_axes([0.5225, 0.07, 0.38, 0.015])
+    a = fig.colorbar(plot2, cax=cbar_ax1, spacing='proportional', extend='max',
+                     orientation='horizontal',
+                     ticks=np.linspace(caxismin, caxismax, 9))
+    a.set_label(label='Change in amplitude of jet speed (ms$^{-1}$)', size=20)
+    cl = plt.getp(cbar_ax1, 'xmajorticklabels')
+    plt.setp(cl, fontsize=16)
+    cols = ['Latitude', 'Magnitude']
+    rows = ['Winter response', 'Summer response']
+    pad = 10  # in points
+    for ax, col in zip(axs[0], cols):
+        ax.annotate(col, xy=(0.5, 1), xytext=(0, pad),
+                    xycoords='axes fraction', textcoords='offset points',
+                    ha='center', va='baseline', fontsize=24)
+    for ax, row in zip(axs[:, 0], rows):
+        ax.annotate(row, xy=(0, 0), xytext=(-ax.yaxis.labelpad - pad, 0),
+                    xycoords=ax.yaxis.label, textcoords='offset points',
+                    ha='right', va='center', rotation=90,
+                    fontsize=24)
+    plt.subplots_adjust(hspace=0.09, wspace=0.05, top=.96, bottom=0.12)
+    plt.show()
+
+
+def fig5(data1, p, sigma, lat, control1, heat, csigma, clat):
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    fig, axs = plt.subplots(2, 2, sharex='col', sharey='row', facecolor='w',
+                            edgecolor='k', linewidth=2)
+    #plt.suptitle("Sensitivity of u'v' divergence", size=30,   
+       #          y=.95)
+    meshlat, meshsigma = np.meshgrid(lat, sigma)
+    cmeshlat, cmeshsigma = np.meshgrid(clat, csigma)
+    mycmap2 = plt.cm.YlOrRd(np.arange(256))
+    mycmap1 = plt.cm.Blues_r(np.arange(256))
+    my_cmap = np.concatenate((mycmap1, mycmap2), axis=0)
+    my_cmap[242:270, :] = 1
+    newcmap = mpl.colors.LinearSegmentedColormap.from_list("newjet", my_cmap)
+    caxismin, caxismax, ctrs = colourscaleint(20)
+    caxismin1, caxismax1, ctr1 = colourscaleint(10)
+    cctrs = [-70, -60, -50, -40, -30, -20, -10, 10, 20, 30, 40, 50]
+    data = np.copy(data1)
+    data[:, 0, :] = data[:, 0, :] * 1e6
+    control = control1 * 1e6
+
+    plot = axs[0, 0].contourf(meshlat, meshsigma, data[0, 1, :], ctr1,
+                              extend='both',
+                              cmap=newcmap, vmin=caxismin1, vmax=caxismax1)
+    plot1 = axs[0, 0].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[0, 0].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot = axs[0, 1].contourf(meshlat, meshsigma, data[0, 0, :], ctrs,
+                              extend='both',
+                              cmap=newcmap, vmin=caxismin, vmax=caxismax)
+    plot1 = axs[0, 1].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[0, 1].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot = axs[1, 0].contourf(meshlat, meshsigma, data[1, 1, :], ctr1,
+                              extend='both', cmap=newcmap, vmin=caxismin1,
+                              vmax=caxismax1)
+    plot1 = axs[1, 0].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[1, 0].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot2 = axs[1, 1].contourf(meshlat, meshsigma, data[1, 0, :], ctrs,
+                               extend='both', cmap=newcmap, vmin=caxismin,
+                               vmax=caxismax)
+    plot1 = axs[1, 1].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[1, 1].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    for i in range(2):
+        for j in range(2):
+            axs[i, j].invert_yaxis()
+            axs[i, j].set_xlim([lat[0], lat[-1]])
+            axs[i, j].set_ylim(1, 0)
+            axs[i, j].set_xticks(np.arange(-75, 90, 15))
+            axs[i, j].set_yticks([0,.2,.4,.6,.8,1])
+            axs[i, j].set_xticklabels(axs[i, j].get_xticks(),
+                                         fontsize=16)
+            axs[i, j].set_yticklabels(axs[i, j].get_yticks(),
+                                         fontsize=16)
+            meshsigma2 = np.copy(meshsigma)
+            meshsigma1 = np.copy(meshsigma)
+            for a in range(9):
+                for b in range(34):
+                    if p[i, 1-j, a, b] <= 0.005:
+                        meshsigma2[a, b] = np.nan
+            axs[i, j].scatter(meshlat, meshsigma2, marker='o', color='gray',
+                              s=0.5)
+            for a in range(9):
+                for b in range(34):
+                    if p[i, 1-j, a, b] > 0.005:
+                        meshsigma1[a, b] = np.nan
+            axs[i, j].scatter(meshlat, meshsigma1, marker='o', color='black',
+                              s=5)
+    plt.subplots_adjust(hspace=0.079, wspace=.05)
+    cbar_ax = fig.add_axes([0.125, 0.07, 0.38, 0.015])
+    b = fig.colorbar(plot, cax=cbar_ax, spacing='proportional', extend='max',
+                     orientation='horizontal',
+                     ticks=np.linspace(caxismin1, caxismax1, 9))
+    b.set_label(label=r"Poleward shift of maximum of $\nabla \cdot$u'v' (deg)", size=20)
+    cl = plt.getp(cbar_ax, 'xmajorticklabels')
+    plt.setp(cl,    fontsize=16)
+    cbar_ax1 = fig.add_axes([0.5225, 0.07, 0.38, 0.015])
+    a = fig.colorbar(plot2, cax=cbar_ax1, spacing='proportional', extend='max',
+                     orientation='horizontal',
+                     ticks=np.linspace(caxismin, caxismax, 9))
+    a.set_label(label=r"Change in amplitude of $\nabla \cdot$u'v' ($\mathregular{1x10^{-6}}$ms$^{-2}$)",
+                size=20)
+    cl = plt.getp(cbar_ax1, 'xmajorticklabels')
+    plt.setp(cl,    fontsize=16)
+    cols = ['Latitude', 'Magnitude']
+    rows = ['Winter response', 'Summer response']
+    pad = 10  # in points
+    for ax, col in zip(axs[0], cols):
+        ax.annotate(col, xy=(0.5, 1), xytext=(0, pad),
+                    xycoords='axes fraction', textcoords='offset points',
+                    ha='center', va='baseline',
+                       fontsize=24)
+    for ax, row in zip(axs[:, 0], rows):
+        ax.annotate(row, xy=(0, 0), xytext=(-ax.yaxis.labelpad - pad, 0),
+                    xycoords=ax.yaxis.label, textcoords='offset points',
+                    ha='right', va='center', rotation=90,
+                       fontsize=24)
+    plt.subplots_adjust(hspace=0.09, wspace=0.05, top=.96, bottom=0.12)
+    plt.show()
+
+
+def fig4(data, p, sigma, lat, control, heat, csigma, clat):
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    fig, axs = plt.subplots(2, 2, sharex='col', sharey='row', facecolor='w',
+                            edgecolor='k', linewidth=2)
+    #plt.suptitle("v'T' sensitivity", size=30,    y=.95)
+    meshlat, meshsigma = np.meshgrid(lat, sigma)
+    cmeshlat, cmeshsigma = np.meshgrid(clat, csigma)
+    mycmap2 = plt.cm.YlOrRd(np.arange(256))
+    mycmap1 = plt.cm.Blues_r(np.arange(256))
+    my_cmap = np.concatenate((mycmap1, mycmap2), axis=0)
+    my_cmap[242:270, :] = 1
+    newcmap = mpl.colors.LinearSegmentedColormap.from_list("newjet", my_cmap)
+    caxismin, caxismax, ctrs = colourscaleint(5)
+    caxismin1, caxismax1, ctr1 = colourscaleint(10)
+    cctrs = [-25, -20, -15, -10, -5, 5, 10]
+
+    plot = axs[0, 0].contourf(meshlat, meshsigma, data[0, 1, :], ctr1,
+                              extend='both',
+                              cmap=newcmap, vmin=caxismin1, vmax=caxismax1)
+    plot1 = axs[0, 0].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[0, 0].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot = axs[0, 1].contourf(meshlat, meshsigma, data[0, 0, :], ctrs,
+                              extend='both',
+                              cmap=newcmap, vmin=caxismin, vmax=caxismax)
+    plot1 = axs[0, 1].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[0, 1].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot = axs[1, 0].contourf(meshlat, meshsigma, data[1, 1, :], ctr1,
+                              extend='both', cmap=newcmap, vmin=caxismin1,
+                              vmax=caxismax1)
+    plot1 = axs[1, 0].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[1, 0].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot2 = axs[1, 1].contourf(meshlat, meshsigma, data[1, 0, :], ctrs,
+                               extend='both', cmap=newcmap, vmin=caxismin,
+                               vmax=caxismax)
+    plot1 = axs[1, 1].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[1, 1].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    for i in range(2):
+        for j in range(2):
+            axs[i, j].invert_yaxis()
+            axs[i, j].set_xlim([lat[0], lat[-1]])
+            axs[i, j].set_ylim(1, 0)
+            axs[i, j].set_xticks(np.arange(-75, 90, 15))
+            axs[i, j].set_yticks([0.0,.2,.4,.6,.8,1])
+            axs[i, j].set_xticklabels(axs[i, j].get_xticks(),
+                                         fontsize=16)
+            axs[i, j].set_yticklabels(axs[i, j].get_yticks(),
+                                         fontsize=16)
+            meshsigma2 = np.copy(meshsigma)
+            meshsigma1 = np.copy(meshsigma)
+            for a in range(9):
+                for b in range(34):
+                    if p[i, 1-j, a, b] <= 0.005:
+                        meshsigma2[a, b] = np.nan
+            axs[i, j].scatter(meshlat, meshsigma2, marker='o', color='gray',
+                              s=0.5)
+            for a in range(9):
+                for b in range(34):
+                    if p[i, 1-j, a, b] > 0.005:
+                        meshsigma1[a, b] = np.nan
+            axs[i, j].scatter(meshlat, meshsigma1, marker='o', color='black',
+                              s=5)
+    plt.subplots_adjust(hspace=0.079, wspace=.05)
+    cbar_ax = fig.add_axes([0.125, 0.07, 0.38, 0.015])
+    b = fig.colorbar(plot, cax=cbar_ax, spacing='proportional', extend='max',
+                     orientation='horizontal',
+                     ticks=np.linspace(caxismin1, caxismax1, 9))
+    b.set_label(label="Poleward shift of maximum of v'T' (deg)", size=20 )
+    cl = plt.getp(cbar_ax, 'xmajorticklabels')
+    plt.setp(cl,    fontsize=16)
+    cbar_ax1 = fig.add_axes([0.5225, 0.07, 0.38, 0.015])
+    a = fig.colorbar(plot2, cax=cbar_ax1, spacing='proportional', extend='max',
+                     orientation='horizontal',
+                     ticks=np.linspace(caxismin, caxismax, 9))
+    a.set_label(label="Amplitude change of v'T' (K ms$^{-1}$)", size=20)
+    cl = plt.getp(cbar_ax1, 'xmajorticklabels')
+    plt.setp(cl,    fontsize=16)
+    cols = ['Latitude', 'Magnitude']
+    rows = ['Winter response', 'Summer response']
+    pad = 10  # in points
+    for ax, col in zip(axs[0], cols):
+        ax.annotate(col, xy=(0.5, 1), xytext=(0, pad),
+                    xycoords='axes fraction', textcoords='offset points',
+                    ha='center', va='baseline',
+                       fontsize=24)
+    for ax, row in zip(axs[:, 0], rows):
+        ax.annotate(row, xy=(0, 0), xytext=(-ax.yaxis.labelpad - pad, 0),
+                    xycoords=ax.yaxis.label, textcoords='offset points',
+                    ha='right', va='center', rotation=90,
+                       fontsize=24)
+    plt.subplots_adjust(hspace=0.09, wspace=0.05, top=.96, bottom=0.12)
+    plt.show()
+
+
+def fig6(data, sigma, lat, control, csigma, clat):
+    '''
+    code for calculating std, instead of percentiles
+    jetspread_std=np.zeros((2,2,307))
+    for i in range(2):
+        for j in range(2):
+            for k in range(307):
+                jetspread_std[i,j,k]=np.std(jetind[k,:,i,j])
+                jetspread_std[i,j,k]=jetspread_std[i,j,k]-jetspread_std[i,j,0]
+    jetspread_std=jetspread_std[:,:,1:]
+    jetspread_std=np.reshape(jetspread_std,(2,2,9,34))
+    '''
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    fig, axs = plt.subplots(2, 2, sharex='col', sharey='row', facecolor='w',
+                            edgecolor='k', linewidth=2)
+    #plt.suptitle("Jet spread sensitivity", size=30,    y=.95)
+    meshlat, meshsigma = np.meshgrid(lat, sigma)
+    cmeshlat, cmeshsigma = np.meshgrid(clat, csigma)
+    mycmap2 = plt.cm.YlOrRd(np.arange(256))
+    mycmap1 = plt.cm.Blues_r(np.arange(256))
+    my_cmap = np.concatenate((mycmap1, mycmap2), axis=0)
+    my_cmap[242:270, :] = 1
+    newcmap = mpl.colors.LinearSegmentedColormap.from_list("newjet", my_cmap)
+    caxismin, caxismax, ctrs = colourscaleint1(0.5)
+    caxismin1, caxismax1, ctr1 = colourscaleint1(5)
+    cmi, cma, cctrs = colourscaleint(50)
+
+    plot = axs[0, 0].contourf(meshlat, meshsigma, data[0, 1, :], ctr1,
+                              extend='both',
+                              cmap=newcmap, vmin=caxismin1, vmax=caxismax1)
+    plot1 = axs[0, 0].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[0, 0].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.f')
+
+    plot = axs[0, 1].contourf(meshlat, meshsigma, data[0, 0, :], ctrs,
+                              extend='both',
+                              cmap=newcmap, vmin=caxismin, vmax=caxismax)
+    plot1 = axs[0, 1].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[0, 1].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    plot = axs[1, 0].contourf(meshlat, meshsigma, data[1, 1, :], ctr1,
+                              extend='both', cmap=newcmap, vmin=caxismin1,
+                              vmax=caxismax1)
+    plot1 = axs[1, 0].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[1, 0].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.f')
+
+    plot2 = axs[1, 1].contourf(meshlat, meshsigma, data[1, 0, :], ctrs,
+                               extend='both', cmap=newcmap, vmin=caxismin,
+                               vmax=caxismax)
+    plot1 = axs[1, 1].contour(cmeshlat, cmeshsigma, control, cctrs,
+                              colors='k', linewidths=1.5)
+    axs[1, 1].clabel(plot1, inline=True, inline_spacing=-3, fontsize=10,
+                     fmt='%.0f')
+
+    for i in range(2):
+        for j in range(2):
+            axs[i, j].invert_yaxis()
+            axs[i, j].set_xlim([lat[0], lat[-1]])
+            axs[i, j].set_ylim(1, 0)
+            axs[i, j].set_xticks(np.arange(-75, 90, 15))
+            axs[i, j].set_yticks([0.0,.2,.4,.6,.8,1])
+            axs[i, j].set_xticklabels(axs[i, j].get_xticks(),
+                                         fontsize=16)
+            axs[i, j].set_yticklabels(axs[i, j].get_yticks(),
+                                         fontsize=16)
+
+    plt.subplots_adjust(hspace=0.079, wspace=.05)
+    cbar_ax = fig.add_axes([0.125, 0.07, 0.38, 0.015])
+    b = fig.colorbar(plot, cax=cbar_ax, spacing='proportional', extend='max',
+                     orientation='horizontal',
+                     ticks=np.linspace(caxismin1, caxismax1, 5))
+    b.set_label(label='Increase in s.d. of jet latitude index (deg)', size=20,
+                fontsize=20)
+    cl = plt.getp(cbar_ax, 'xmajorticklabels')
+    plt.setp(cl,    fontsize=16)
+    cbar_ax1 = fig.add_axes([0.5225, 0.07, 0.38, 0.015])
+    a = fig.colorbar(plot2, cax=cbar_ax1, spacing='proportional', extend='max',
+                     orientation='horizontal',
+                     ticks=np.linspace(caxismin, caxismax, 5))
+    a.set_label(label='Increase in s.d. of jet speed index (ms$^{-1}$)', size=20, fontsize=20)
+    cl = plt.getp(cbar_ax1, 'xmajorticklabels')
+    plt.setp(cl,    fontsize=16)
+    cols = ['Latitude', 'Magnitude']
+    rows = ['Winter response', 'Summer response']
+    pad = 10  # in points
+    for ax, col in zip(axs[0], cols):
+        ax.annotate(col, xy=(0.5, 1), xytext=(0, pad),
+                    xycoords='axes fraction', textcoords='offset points',
+                    ha='center', va='baseline',
+                       fontsize=24)
+    for ax, row in zip(axs[:, 0], rows):
+        ax.annotate(row, xy=(0, 0), xytext=(-ax.yaxis.labelpad - pad, 0),
+                    xycoords=ax.yaxis.label, textcoords='offset points',
+                    ha='right', va='center', rotation=90,
+                       fontsize=24)
+    plt.subplots_adjust(hspace=0.09, wspace=0.05, top=.96, bottom=0.12)
+    plt.show()
+
+
+def fig7(u, duv, potemp, strm, vT, divvT, temp, z, sigma, lat, heat, run):
+    def lapserate(t, z, sigma, lat):
+        """
+        Produces plot of lapse rate of T data
+
+        Parameters
+        ----------
+        t: array
+            temperature data field
+        z: array
+            geopotential height of field
+        sigma: array
+            sigma levels of field
+        lat: array
+            lat of field
+        """
+        import numpy as np
+        dT = np.zeros((np.ma.size(sigma), np.ma.size(lat)))
+        dz = np.zeros((np.ma.size(sigma), np.ma.size(lat)))
+        for i in range(np.ma.size(sigma, axis=0)-1):
+            dT[i, :] = t[i+1, :] - t[i, :]
+        for i in range(np.ma.size(sigma, axis=0)-1):
+            dz[i, :] = z[i+1, :] - z[i, :]
+        lapse = -1000 * dT[0:-1] / dz[0:-1]
+        # zonalplot(lapse, sigma[0:-1], lat, 'Lapse rate')
+        return lapse
+
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    fig, axs = plt.subplots(2, 2, sharey='row', facecolor='w',
+                            edgecolor='k', linewidth=2)
+    # plt.suptitle("Run " + str(run), size=30,    y=.95)
+    meshlat, meshsigma = np.meshgrid(lat, sigma)
+    mycmap2 = plt.cm.YlOrRd(np.arange(256))
+    mycmap1 = plt.cm.Blues_r(np.arange(256))
+    my_cmap = np.concatenate((mycmap1, mycmap2), axis=0)
+    my_cmap[242:270, :] = 1
+    newcmap = mpl.colors.LinearSegmentedColormap.from_list("newjet", my_cmap)
+    lapse = lapserate(temp[run, :, :], z[run, :, :], sigma, lat)
+    lapse[22:, :] = 99
+    lapse0 = lapserate(temp[0, :, :], z[0, :, :], sigma, lat)
+    lapse0[22:, :] = 99
+
+    ctrsa = np.arange(-65, 0, 5)
+    ctrsb = np.arange(5, 70, 5)
+    ctrs = np.concatenate((ctrsa, ctrsb))
+    ctrsa1 = np.arange(-70, 0, 7)
+    ctrsb1 = np.arange(7, 70, 7)
+    ctrs2 = np.concatenate((ctrsa1, ctrsb1))
+    plot2 = axs[0, 0].contourf(meshlat, meshsigma, u[run, :], ctrs,
+                               cmap=newcmap, vmin=-65, vmax=65, extend='both')
+    m = axs[0, 0].get_figure().colorbar(plot2, ax=axs[0, 0],
+                                        orientation='horizontal', aspect=50,
+                                        format='%.1f', spacing='proportional')
+    m.set_label(label="Zonal wind (ms$^{-1}$)\nContours show divergence of u'v' ($\mathregular{1x10^{-6}}$ms$^{-2}$)", fontsize=20)
+    q = m.ax.get_xticklabels()
+    m.ax.set_xticklabels(q, fontsize=16)
+    axs[0, 0].contour(meshlat, meshsigma, duv[0, :]*1e6, ctrs2,
+                      colors='g', linewidths=1.5)
+    plot1 = axs[0, 0].contour(meshlat, meshsigma, duv[run, :]*1e6, ctrs2,
+                              colors='k', linewidths=1.5)
+    plt.clabel(plot1, inline=True, inline_spacing=0, fontsize=10, fmt='%.0f')
+
+    ctrsa = np.arange(-2, 0, .2)
+    ctrsb = np.arange(0, 2.2, .2)
+    ctrs = np.concatenate((ctrsa, ctrsb))
+    ctrs2 = [270, 280, 290, 300, 310, 320, 330, 340, 350, 400, 500]
+    #ctrs2 = np.linspace(270, 350, 17)
+    plot3 = axs[1, 0].contourf(meshlat, meshsigma, strm[run, :]/1e11, ctrs,
+                               cmap=newcmap, vmin=-2, vmax=2, extend='both')
+    n = axs[0, 0].get_figure().colorbar(plot3, ax=axs[1, 0],
+                                        orientation='horizontal', aspect=50,
+                                        format='%.1f', spacing='proportional')
+    n.set_label(label="Streamfunction ($\mathregular{1x10^{11}}$kg s$^{-1}$)\nContours show potential temperature (K)", fontsize=20)
+    r = n.ax.get_xticklabels()
+    n.ax.set_xticklabels(r, fontsize=16)
+    axs[1, 0].contour(meshlat, meshsigma, potemp[0, :], ctrs2,
+                      colors='g', linewidths=1.5)
+    plot1 = axs[1, 0].contour(meshlat, meshsigma, potemp[run, :], ctrs2,
+                              colors='k', linewidths=1.5)
+    axs[1, 0].clabel(plot1, inline=True, inline_spacing=-10, fontsize=10,
+                     fmt='%.0f')
+
+    cmin, cmax, ctrs = colourscale(u[run, :]-u[0, :])
+    ctrsc1 = np.arange(-30, 0, 3)
+    ctrsd1 = np.arange(3, 30, 3)
+    ctrs2 = np.concatenate((ctrsc1, ctrsd1))
+    plot4 = axs[0, 1].contourf(meshlat, meshsigma, u[run, :]-u[0, :], ctrs,
+                               cmap=newcmap, vmin=cmin, vmax=cmax,
+                               extend='both')
+    o = axs[0, 1].get_figure().colorbar(plot4, ax=axs[0, 1],
+                                        orientation='horizontal', aspect=50,
+                                        format='%.1f', spacing='proportional')
+    o.set_label(label="Zonal wind change (ms$^{-1}$)\nContours show v'T' (K ms$^{-1}$)",
+                fontsize=20)
+    s = o.ax.get_xticklabels()
+    o.ax.set_xticklabels(s, fontsize=16)
+    axs[0, 1].contour(meshlat, meshsigma, vT[0, :], ctrs2, colors='g',
+                      linewidths=1.5)
+    plot1 = axs[0, 1].contour(meshlat, meshsigma, vT[run, :], ctrs2,
+                              colors='k', linewidths=1.5)
+    axs[0, 1].clabel(plot1, inline=True, inline_spacing=0, fontsize=10,
+                     fmt='%.0f')
+
+    cmin, cmax, ctrs = colourscale((strm[run, :]-strm[0, :])/1e10)
+    ctrsc = np.arange(-21, 0, 3)
+    ctrsd = np.arange(3, 24, 3)
+    ctrs2 = np.concatenate((ctrsc, ctrsd))
+    plot5 = axs[1, 1].contourf(meshlat, meshsigma,
+                               (strm[run, :]-strm[0, :])/1e10, ctrs,
+                               cmap=newcmap, vmin=cmin, vmax=cmax,
+                               extend='both')
+    p = axs[1, 1].get_figure().colorbar(plot5, ax=axs[1, 1],
+                                        orientation='horizontal', aspect=50,
+                                        format='%.1f', spacing='proportional')
+    t = p.ax.get_xticklabels()
+    p.ax.set_xticklabels(t, fontsize=16)
+    p.set_label(label="Streamfunction change ($\mathregular{1x10^{10}}$kg s$^{-1}$)\nContours show divergence of v'T' ($\mathregular{1x10^{-6}}$K s$^{-1}$)", fontsize=20)    
+    axs[1, 1].contour(meshlat, meshsigma, divvT[0, :]*1e6, ctrs2,
+                      colors='g', linewidths=1.5)
+    plot1 = axs[1, 1].contour(meshlat, meshsigma, divvT[run, :]*1e6, ctrs2,
+                              colors='k', linewidths=1.5)
+    axs[1, 1].clabel(plot1, inline=True, inline_spacing=0, fontsize=10,
+                     fmt='%.0f')
+    for i in range(2):
+        for j in range(2):
+            axs[i, j].contour(meshlat[1:, :], meshsigma[1:, :], lapse0, [2], linewidths=1, colors='darkblue')
+            axs[i, j].contour(meshlat[1:, :], meshsigma[1:, :], lapse, [2],
+                              linewidths=2, colors='darkblue')
+            axs[i, j].invert_yaxis()
+            if run != 0:
+                sigmax = np.argmax(heat[run, :, :], axis=0)[0]
+                latmax = np.argmax(heat[run, :, :], axis=1)[0]
+                axs[i, j].scatter(lat[latmax], sigma[sigmax], marker='o',
+                                  color='deeppink', linewidth=2, s=50)
+            axs[i, j].set_xlim([lat[0], lat[-1]])
+            axs[i, j].set_ylim(1, 0)
+            axs[i, j].set_xticks(np.arange(-75, 90, 15))
+            axs[i, j].set_yticks([0,.2,.4,.6,.8,1])
+            axs[i, j].set_xticklabels(axs[i, j].get_xticks(),
+                                      fontsize=16)
+            axs[i, j].set_yticklabels(axs[i, j].get_yticks(),
+                                      fontsize=16)
+    plt.subplots_adjust(hspace=0.15, wspace=0.05, top=.99, bottom=0.055,
+                        left=0.03, right=0.99)
+    plt.show()
+
+
+def fig11(d_q0):
+    import matplotlib.pyplot as plt
+    xax = np.array([0.1, 0.5, 1.0, 1.5, 2.0, 2.5])#, 3.0, 4.0, 5.0, 7.5, 10.0])
+    fig, axs = plt.subplots(1, 2, facecolor='w', edgecolor='k', linewidth=2)
+    #plt.suptitle('Linearity of response with respect to magnitude of heating',
+    #             y=.95, fontsize=30, fontweight='bold')
+    axs[0].plot(xax, d_q0[0, :, 0, 0], ms=8, color='r', marker='o',
+                linewidth=2, label='Winter 1')
+
+    axs[0].plot(xax, d_q0[1, :, 0, 0], ms=8, color='b', marker='o',
+                linewidth=2, label='Winter 2')
+
+    axs[0].plot(xax, d_q0[2, :, 0, 0], ms=8, color='g', marker='o',
+                linewidth=2, label='Winter 3')
+
+    axs[0].plot(xax, d_q0[3, :, 0, 0], ms=8, color='k', marker='o',
+                linewidth=2, label='Winter 4')
+
+    axs[0].plot(xax, d_q0[0, :, 1, 0], ms=8, mew=2, ls='--', color='r',
+                marker='x', linewidth=2, label='Summer 1')
+
+    axs[0].plot(xax, d_q0[1, :, 1, 0], ms=8, mew=2, ls='--', color='b',
+                marker='x', linewidth=2, label='Summer 2')
+
+    axs[0].plot(xax, d_q0[2, :, 1, 0], ms=8, mew=2, ls='--', color='g',
+                marker='x', linewidth=2, label='Summer 3')
+
+    axs[0].plot(xax, d_q0[3, :, 1, 0], ms=8, mew=2, ls='--', color='k',
+                marker='x', linewidth=2, label='Summer 4')
+    axs[0].set_xlim(0, 2.6)
+    axs[0].set_ylim(-2.4, 1.2)
+    axs[0].set_xticks([0.1, 0.5, 1.0, 1.5, 2.0, 2.5])#, 3.0, 4.0, 5.0, 7.5, 10.0])
+    axs[0].set_xticklabels(axs[0].get_xticks(), fontsize=16)
+    axs[0].set_yticklabels(axs[0].get_yticks(), fontsize=16)
+    axs[0].set_xlabel('Heating (K day$^{-1}$)', size=20)
+    axs[0].set_ylabel('Change in jet speed (ms$^{-1}$)', size=20)
+    handles, labels = axs[0].get_legend_handles_labels()
+    axs[0].legend(handles, labels, loc=2)
+
+    axs[1].plot(xax, d_q0[0, :, 0, 1], ms=8, color='r', marker='o',
+                linewidth=2, label='Winter 1')
+
+    axs[1].plot(xax, d_q0[1, :, 0, 1], ms=8, color='b', marker='o',
+                linewidth=2, label='Winter 2')
+
+    axs[1].plot(xax, d_q0[2, :, 0, 1], ms=8, color='g', marker='o',
+                linewidth=2, label='Winter 3')
+
+    axs[1].plot(xax, d_q0[3, :, 0, 1], ms=8, color='k', marker='o',
+                linewidth=2, label='Winter 4')
+
+    axs[1].plot(xax, d_q0[0, :, 1, 1], ms=8, mew=2, ls='--', color='r',
+                marker='x', linewidth=2, label='Summer 1')
+
+    axs[1].plot(xax, d_q0[1, :, 1, 1], ms=8, mew=2, ls='--', color='b',
+                marker='x', linewidth=2, label='Summer 2')
+
+    axs[1].plot(xax, d_q0[2, :, 1, 1], ms=8, mew=2, ls='--', color='g',
+                marker='x', linewidth=2, label='Summer 3')
+
+    axs[1].plot(xax, d_q0[3, :, 1, 1], ms=8, mew=2, ls='--', color='k',
+                marker='x', linewidth=2, label='Summer 4')
+    axs[1].set_xlim(0, 2.6)
+    axs[1].set_ylim(-5, 17)
+    axs[1].set_xticks([0.1, 0.5, 1.0, 1.5, 2.0, 2.5])#, 3.0, 4.0, 5.0, 7.5, 10.0])
+    axs[1].set_xticklabels(axs[1].get_xticks(), fontsize=16)
+    axs[1].set_yticklabels(axs[1].get_yticks(), fontsize=16)
+    axs[1].set_xlabel('Heating (K day$^{-1}$)', size=20)
+    axs[1].set_ylabel('Poleward shift of jet (deg)', size=20)
+    handles, labels = axs[1].get_legend_handles_labels()
+    axs[1].legend(handles, labels, loc=2)
+    plt.subplots_adjust(hspace=0, wspace=0.15, top=.99, bottom=0.085,
+                        left=0.06, right=0.98)
+
+def fig12(d_qaddlin, d_qadd, jetind_solo):
+    fig, axs = plt.subplots(1, 2, facecolor='w', edgecolor='k', linewidth=2)
+    # plt.suptitle('Linearity of combined responses',
+    #              y=.95, fontsize=30, fontweight='bold')
+    axs[0].plot([-7, 17], [-7, 17], c='k', linewidth=2, alpha=0.5)    
+    axs[0].scatter(d_qaddlin[:, 0, 0], d_qadd[:, 0, 0], s=15, color='b',
+                   marker='o', linewidth=7, label='Winter')
+    axs[0].scatter(jetind_solo[:, 0, 0], jetind_solo[:, 0, 0], s=100, facecolors='none', edgecolors='b',
+                   marker='o', linewidth=2)
+    
+    axs[0].scatter(d_qaddlin[:, 1, 0], d_qadd[:, 1, 0], s=15, color='r',
+                   marker='o', linewidth=7, label='Summer')
+    axs[0].scatter(jetind_solo[:, 1, 0], jetind_solo[:, 1, 0], s=100, facecolors='none', edgecolors='r',
+                   marker='o', linewidth=2)
+    
+    axs[0].set_xlim(-4, 1.5)
+    axs[0].set_ylim(-4, 1.5)
+    axs[0].set_xticklabels(axs[0].get_yticks(),   fontsize=16)
+    axs[0].set_yticklabels(axs[0].get_yticks(),   fontsize=16)
+    axs[0].set_xlabel('Change in jet speed in sum of individual simulations (ms$^{-1}$)', size=20)
+    axs[0].set_ylabel('Change in jet speed in combined forcing runs (ms$^{-1}$)', size=20)
+    handles, labels = axs[0].get_legend_handles_labels()
+    axs[0].legend(handles, labels, loc=2, scatterpoints=1)
+    axs[0].axhline(0, ls='--', color='gray')
+    axs[0].axvline(0, ls='--', color='gray')
+    
+    
+    axs[1].plot([-15, 17], [-15, 17], c='k', linewidth=2, alpha=0.5)
+    axs[1].scatter(d_qaddlin[:, 0, 1], d_qadd[:, 0, 1], s=15, color='b',
+                   marker='o', linewidth=7, label='Winter')
+    
+    axs[1].scatter(jetind_solo[:, 0, 1], jetind_solo[:, 0, 1], s=100, facecolors='none', edgecolors='b',
+                   marker='o', linewidth=2)
+    
+    axs[1].scatter(d_qaddlin[:, 1, 1], d_qadd[:, 1, 1], s=15, color='r',
+                   marker='o', linewidth=7, label='Summer')
+    
+    axs[1].scatter(jetind_solo[:, 1, 1], jetind_solo[:, 1, 1], s=100, facecolors='none', edgecolors='r',
+                   marker='o', linewidth=2)
+    axs[1].set_xlim(-5, 17)
+    axs[1].set_ylim(-5, 17)
+    axs[1].set_xticklabels(axs[1].get_yticks(),   fontsize=16)
+    axs[1].set_yticklabels(axs[1].get_yticks(),   fontsize=16)
+    axs[1].set_xlabel('Poleward shift of jet in sum of individual simulations (deg)', size=20)
+    axs[1].set_ylabel('Poleward shift in combined forcing runs (deg)', size=20)
+    handles, labels = axs[1].get_legend_handles_labels()
+    axs[1].legend(handles, labels, loc=2, scatterpoints=1)
+    axs[1].axhline(0, ls='--', color='gray')
+    axs[1].axvline(0, ls='--', color='gray')
+    
+    labels1 = ['1', '2', '3', '4', '1 ', '2 ', '3 ', '4 ', '1+2', '1+3', '1+4',
+                   '2+3', '2+4', '3+4', '1+2+3', '1+2+4', '1+3+4', '2+3+4',
+                   '1+2+3+4', '1+2 ', '1+3 ', '1+4 ', '2+3 ', '2+4 ',
+                   '3+4 ', '1+2+3 ', '1+2+4 ', '1+3+4 ', '2+3+4 ', '1+2+3+4 ']
+    
+    a=np.concatenate((np.ndarray.flatten(jetind_solo[:,0,0]),np.ndarray.flatten(jetind_solo[:,1,0]),np.ndarray.flatten(d_qaddlin[:, 0, 0]),np.ndarray.flatten(d_qaddlin[:, 1, 0])))
+    
+    b=np.concatenate((np.ndarray.flatten(jetind_solo[:,0,0]),np.ndarray.flatten(jetind_solo[:,1,0]),np.ndarray.flatten(d_qadd[:, 0, 0]),np.ndarray.flatten(d_qadd[:, 1, 0])))
+    
+    
+    c=np.concatenate((np.ndarray.flatten(jetind_solo[:,0,1]),np.ndarray.flatten(jetind_solo[:,1,1]),np.ndarray.flatten(d_qaddlin[:, 0, 1]),np.ndarray.flatten(d_qaddlin[:, 1, 1])))
+    
+    d=np.concatenate((np.ndarray.flatten(jetind_solo[:,0,1]),np.ndarray.flatten(jetind_solo[:,1,1]),np.ndarray.flatten(d_qadd[:, 0, 1]),np.ndarray.flatten(d_qadd[:, 1, 1])))
+    
+    axs[0].annotate(labels1[0], xy=(a[0], b[0]), xytext=(a[0]-.2, b[0]+.2),   fontsize=15,
+                            arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    axs[0].annotate(labels1[1], xy=(a[1], b[1]), xytext=(a[1]+.2, b[1]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    axs[0].annotate(labels1[2], xy=(a[2], b[2]), xytext=(a[2]+.2, b[2]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=3
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.2, b[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=4
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.2, b[p]-.2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=5
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.2, b[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=6
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.2, b[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=7
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.2, b[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=8
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.2, b[p]-.2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=9
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p], b[p]+.2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=10
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.2, b[p]+.2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=11
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.4, b[p]-.1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=12
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.5, b[p]+.2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=13
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.3, b[p]-.1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=14
+    
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.4, b[p]+.1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=15
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.7, b[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=16
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.1, b[p]-.4),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    p=17
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.2, b[p]+.4),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=18
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.1, b[p]+.9),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    p=19
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.5, b[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    p=20
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.5, b[p]-.3),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    p=21
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.5, b[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    p=22
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.4, b[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    p=23
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.4, b[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=24
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.4, b[p]+.2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=25
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.4, b[p]-.2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=26
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.2, b[p]+.2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=27
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]+.5, b[p]-.1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=28
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.3, b[p]+.1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=29
+    
+    axs[0].annotate(labels1[p], xy=(a[p], b[p]), xytext=(a[p]-.8, b[p]+.1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=0
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-2, d[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=1
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-1.2, d[p]+.5),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=2
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-1.2, d[p]+.5),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=3
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-1.2, d[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=4
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-1.2, d[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=5
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-1.2, d[p]+.5),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    p=6
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-1.2, d[p]+.5),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=7
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-2, d[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=8
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-2, d[p]+2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=9
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p], d[p]+2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=10
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-2, d[p]+2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=11
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+2, d[p]-1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    p=12
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+2, d[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=13
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+2, d[p]-1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=14
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+1.5, d[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=15
+    
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p], d[p]+1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=16
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-4, d[p]+.1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=17
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+2, d[p]+.1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=18
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+2, d[p]+.1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=19
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+.9, d[p]+2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=20
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-.2, d[p]+2),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=21
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-3, d[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=22
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+3, d[p]),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=23
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-2, d[p]-.3),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=24
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+2, d[p]-.75),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=25
+    
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p], d[p]-1.5),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=26
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-1, d[p]+1.5),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=27
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-2, d[p]-1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=28
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]+2, d[p]-1),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    
+    
+    p=29
+    
+    axs[1].annotate(labels1[p], xy=(c[p], d[p]), xytext=(c[p]-3.5, d[p]+.3),   fontsize=15, arrowprops=dict(arrowstyle="->", color='k', lw=1))
+    plt.subplots_adjust(hspace=0, wspace=0.15, top=.99, bottom=0.085,
+                        left=0.06, right=0.98)
